@@ -2,7 +2,7 @@
 
 A set of .NET 10.0 tools for syncing Airtable data to PostgreSQL (AWS RDS), downloading images, and generating a static HTML gallery.
 
-This system was built for the [Keith Long Archive](https://github.com/hoganlong/keithlong) but is designed to be adapted for any Airtable base.
+This system was built for the [archive.keithlong.com](https://archive.keithlong.com) ([Keith Long Archive](https://github.com/hoganlong/keithlong)) but is designed to be adapted for any artist.
 
 ---
 
