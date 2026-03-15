@@ -19,7 +19,10 @@ cd AirtableToPostgres && dotnet run -- diagnostic
 
 cd AirtableImageDownloader && dotnet run
 
-cd ArtWorkHTML && dotnet run
+cd ArtWorkHTML && dotnet run               # default: generate all HTML pages
+cd ArtWorkHTML && dotnet run -- gen-static # generate static pages only (no DB required)
+cd ArtWorkHTML && dotnet run -- test-db    # test PostgreSQL connection
+cd ArtWorkHTML && dotnet run -- test-airtable # test Airtable connection
 ```
 
 Root-level batch scripts (in the keithlong repo):
@@ -84,15 +87,22 @@ Uses C# partial classes, one file per page type:
 
 | File | Role |
 |---|---|
+| `ArtworkHTML.cs` | Main orchestrator — calls all page generators |
+| `ArtList.cs` | Data model for artwork records |
 | `GenerateArtworkPages.cs` | Main gallery (`artworksplus.html`) |
 | `GenerateStatisticsPage.cs` | Stats page |
 | `GenerateStylesheet.cs` | All CSS |
 | `GenerateIndexPage.cs` | Home page |
 | `GenerateHowIsMadePage.cs` | "How it's made" page |
-| `ArtList.cs` | Data model for artwork records |
+| `GenerateCreditsPage.cs` | Credits page |
+| `GenerateFeedbackPage.cs` | Feedback page |
+| `GenerateHelpPage.cs` | Help page |
+| `GenerateOpensourcePage.cs` | Open source page |
+| `GenerateCopyrightPage.cs` | Copyright page |
 
 - Reads from PostgreSQL tables: `artwork`, `artwork_image`, `artwork_type`, `sketch`
 - Images are served from S3 (URLs stored in PostgreSQL)
+- `gen-static` mode skips the database connection and generates only static/non-data pages
 
 ---
 
