@@ -28,6 +28,7 @@ Airtable Base
 | `AirtableSchemaReader` | Reads your Airtable base schema and outputs `airtable_schema.txt` |
 | `AirtableToPostgres` | Syncs Airtable tables to PostgreSQL with typed columns (incremental or full) uses `airtable_schema.txt`|
 | `AirtableImageDownloader` | Downloads images from Airtable attachment fields to local disk |
+| `CheckS3vsLocal` | Compares a local image directory to an S3 bucket prefix; uploads missing files |
 | `ArtWorkHTML` | Generates a static HTML gallery from PostgreSQL data + S3 images <BR>(S3 names are specified in ARTWORK table, and uploaded from `AirtableImageDownloader` output)|
 
 ---
