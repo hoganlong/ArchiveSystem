@@ -71,7 +71,7 @@ dotnet run
 
 **Output:** Images saved to `images/artwork/` and `images/archive/`
 
-**File naming:** `{prefix}_{recordId}_{size}.{ext}` (e.g., `artwork_recABC123_1920x1080.jpg`)
+**File naming:** `{prefix}_{recordId}_{size}.{ext}` — size is one of `full`, `large`, or `small` (e.g., `artwork_A001_full.jpg`)
 
 **Resume support:** Already-downloaded files are skipped. Safe to re-run.
 

@@ -59,17 +59,27 @@ Images are saved into subdirectories based on the source table:
 ```
 images/
 ├── artwork/
-│   └── artwork_recABC123_1920x1080.jpg
+│   ├── artwork_A001_full.jpg
+│   ├── artwork_A001_large.jpg
+│   └── artwork_A001_small.jpg
 └── archive/
-    └── archive_recXYZ456_800x600.jpg
+    ├── archive_B001_full.jpg
+    └── archive_B001_large.jpg
 ```
 
 **File naming:** `{prefix}_{recordId}_{size}.{ext}`
 
-- `prefix` — derived from the table name (e.g., `artwork`, `archive`)
-- `recordId` — the Airtable record ID (e.g., `recABC123`)
-- `size` — image dimensions (e.g., `1920x1080`)
-- `ext` — file extension from the original file
+- `prefix` — derived from the table name (`artwork` or `archive`)
+- `recordId` — the value of the `ID` field in the Airtable record
+- `size` — one of three constants: `full` (main image), `small`, or `large` (Airtable thumbnail sizes)
+- `ext` — file extension from the original file (`.jpeg` is normalized to `.jpg`)
+
+Example filenames:
+```
+artwork_A001_full.jpg
+artwork_A001_large.jpg
+artwork_A001_small.jpg
+```
 
 ---
 
