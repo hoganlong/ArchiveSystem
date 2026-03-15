@@ -97,6 +97,6 @@ Attachment field names are discovered automatically from the Airtable schema. Yo
 
 ## Adapting for Your Base
 
-Change only `AirtableApiKey` and `AirtableBaseId` in `appsettings.json`. The tool works with any Airtable base that has attachment fields — no other changes needed.
+Change only `AirtableApiKey` and `AirtableBaseId` in `appsettings.json`. The tool works with any Airtable base table that has attachment fields — no other changes needed.  (TODO: verify what happens with differtly named tables with images)
 
 See [adapting-for-new-artist.md](adapting-for-new-artist.md) and [configuration-reference.md](configuration-reference.md) for more options.
