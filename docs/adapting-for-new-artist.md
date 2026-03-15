@@ -50,6 +50,7 @@ This tool discovers attachment fields dynamically from the Airtable schema — t
 ## ArtWorkHTML
 
 This is the most artist-specific component. It was built for the Keith Long Archive and contains content and structure that reflects that.
+(TODO: Move all content to txt files so removing or changing artist specific is a file copy operation.)
 
 ### What is generic
 - The mechanism for reading from PostgreSQL and rendering HTML
