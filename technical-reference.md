@@ -13,14 +13,20 @@ cd AirtableSchemaReader && dotnet run
 
 cd AirtableToPostgres && dotnet run          # default: incremental sync
 cd AirtableToPostgres && dotnet run -- full  # full sync all tables
-cd AirtableToPostgres && dotnet run -- query # interactive SQL REPL
-cd AirtableToPostgres && dotnet run -- showall
-cd AirtableToPostgres && dotnet run -- diagnostic
 
 cd AirtableImageDownloader && dotnet run
 
 cd ArtWorkHTML && dotnet run               # default: generate all HTML pages
 cd ArtWorkHTML && dotnet run -- gen-static # generate static pages only (no DB required)
+```
+Additional Command line options (not needed in standard build process)
+
+```bash
+cd AirtableToPostgres && dotnet run -- query # interactive SQL REPL
+cd AirtableToPostgres && dotnet run -- showall
+cd AirtableToPostgres && dotnet run -- diagnostic
+
+
 cd ArtWorkHTML && dotnet run -- test-db    # test PostgreSQL connection
 cd ArtWorkHTML && dotnet run -- test-airtable # test Airtable connection
 ```
