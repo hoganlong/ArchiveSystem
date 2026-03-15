@@ -84,7 +84,7 @@ Files from AirtableImageDownloader
 - Attachment field names are discovered dynamically from the schema — no hard-coding required
 - Output directories: `images/artwork/` and `images/archive/`
   (TODO: this will probably change because archive is not used.)
-- File naming: `{prefix}_{recordId}.{ext}` (e.g., `artwork_rec123_large.jpg`)
+- File naming: `{prefix}_{recordId}_{size}.{ext}` — size is one of `full`, `large`, or `small` (e.g., `artwork_A001_large.jpg`)
 - Resume-capable: skips files that already exist on disk
 
 ---
