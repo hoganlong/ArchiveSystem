@@ -20,23 +20,14 @@ cd ArtWorkHTML && dotnet run               # default: generate all HTML pages
 cd ArtWorkHTML && dotnet run -- gen-static # generate static pages only (no DB required)
 ```
 Additional Command line options (not needed in standard build process)
-
 ```bash
-cd AirtableToPostgres && dotnet run -- query # interactive SQL REPL
-cd AirtableToPostgres && dotnet run -- showall
-cd AirtableToPostgres && dotnet run -- diagnostic
-
+cd AirtableToPostgres && dotnet run -- query      # interactive queries with menu
+cd AirtableToPostgres && dotnet run -- showall    # runs all queries
+cd AirtableToPostgres && dotnet run -- diagnostic <ARTWORK_IMAGE> #needed for testing get a specific artwork image from airtable.
 
 cd ArtWorkHTML && dotnet run -- test-db    # test PostgreSQL connection
 cd ArtWorkHTML && dotnet run -- test-airtable # test Airtable connection
 ```
-
-Root-level batch scripts (in the keithlong repo):
-- `etl.bat` — runs AirtableToPostgres sync
-- `makeweb.bat` — runs ArtWorkHTML generator
-
----
-
 ## Architecture
 
 ### Data Flow
@@ -51,7 +42,17 @@ Airtable Base
        │                                                   └─→ reads images from S3
        └─→ AirtableImageDownloader → images/artwork/ and images/archive/
 ```
-
+### Image File Flow
+```
+Files from photographer
+       ├─→ tif  → S3 "/" root 
+       └─→ jpg  → S3 "/jpg" dir
+Files from scanning service
+       ├─→ tif  → S3 "/scan" dir 
+       └─→ jpg  → S3 "/scan/jpg" dir
+Files from AirtableImageDownloader
+       └─→ jpg  → S3 "/atch" dir
+```
 ---
 
 ## AirtableSchemaReader
@@ -82,7 +83,8 @@ Airtable Base
 - Downloads from attachment fields in any Airtable table
 - Attachment field names are discovered dynamically from the schema — no hard-coding required
 - Output directories: `images/artwork/` and `images/archive/`
-- File naming: `{prefix}_{recordId}_{size}.{ext}` (e.g., `artwork_rec123_1920x1080.jpg`)
+  (TODO: this will probably change because archive is not used.)
+- File naming: `{prefix}_{recordId}.{ext}` (e.g., `artwork_rec123_large.jpg`)
 - Resume-capable: skips files that already exist on disk
 
 ---
@@ -124,3 +126,4 @@ Uses C# partial classes, one file per page type:
 - 2-space indentation
 - Async/await throughout
 - `Newtonsoft.Json` for JSON, `Npgsql` for PostgreSQL, `AWSSDK.*` for AWS
+- Functionality generic whenever possible with system specific functionality isolated to `const strings` and txt files when possible.
