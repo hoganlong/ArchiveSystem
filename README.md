@@ -32,14 +32,19 @@ Airtable Base
 
 ---
 
-## Two Ways to Use This System
+## Three Ways to Use This System
 
 ### Path A — Airtable to PostgreSQL only
 You want to sync your Airtable base to a PostgreSQL database. You don't need images or HTML.
 
 → Start here: [docs/airtable-to-postgres.md](docs/airtable-to-postgres.md)
 
-### Path B — Full artist archive pipeline
+### Path B — Image download only
+You want to extract and download images from your Airtable attachment fields to local disk. No database required.
+
+→ Start here: [docs/airtable-image-downloader.md](docs/airtable-image-downloader.md)
+
+### Path C — Full artist archive pipeline
 You want the complete system: database sync, image downloads, and a generated HTML gallery.
 
 → Start here: [docs/getting-started.md](docs/getting-started.md)
