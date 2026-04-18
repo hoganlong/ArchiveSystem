@@ -23,13 +23,24 @@ Airtable Base
 
 ## Projects
 
+### Core Pipeline
+
 | Project | Purpose |
 |---|---|
 | `AirtableSchemaReader` | Reads your Airtable base schema and outputs `airtable_schema.txt` |
-| `AirtableToPostgres` | Syncs Airtable tables to PostgreSQL with typed columns (incremental or full) uses `airtable_schema.txt`|
+| `AirtableToPostgres` | Syncs Airtable tables to PostgreSQL with typed columns (incremental or full); uses `airtable_schema.txt` |
 | `AirtableImageDownloader` | Downloads images from Airtable attachment fields to local disk |
-| `CheckS3vsLocal` | Compares a local image directory to an S3 bucket prefix; uploads missing files |
-| `ArtWorkHTML` | Generates a static HTML gallery from PostgreSQL data + S3 images <BR>(S3 names are specified in ARTWORK table, and uploaded from `AirtableImageDownloader` output)|
+| `checks3vslocal` | Compares a local image directory to an S3 bucket prefix; uploads missing files |
+| `ArtWorkHTML` | Generates a static HTML gallery from PostgreSQL data + S3 images |
+
+### Utility Tools
+
+| Project | Purpose |
+|---|---|
+| `getspecialimages` | Downloads artwork images missing a front-view from S3, renaming them to HumanId format |
+| `CheckPhotoList` | Verifies Airtable PHOTO table records against local manifests and S3 bucket |
+| `readawsbucket` | Lists S3 bucket contents with file sizes and metadata |
+| `fixcsv` | One-off CSV normalizer: fixes headers and strips `.tif` extensions from filename fields |
 
 ---
 

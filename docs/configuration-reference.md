@@ -73,6 +73,30 @@ All `appsettings.json` fields across the Archive System projects. No actual valu
 
 ---
 
+## getspecialimages
+
+| Key | Description |
+|---|---|
+| `PostgreSQL:SecretArn` | ARN of the AWS Secrets Manager secret containing PostgreSQL credentials |
+| `PostgreSQL:Host` | PostgreSQL server hostname |
+| `PostgreSQL:Database` | Database name |
+| `PostgreSQL:Port` | PostgreSQL port. Defaults to `5432` |
+| `S3:BucketName` | S3 bucket containing source images |
+| `S3:Prefix` | S3 key prefix for source images (e.g. `jpg/`) |
+| `Output:Directory` | Local directory where renamed images are saved. Defaults to `images` |
+
+---
+
+## checks3vslocal
+
+| Key | Description |
+|---|---|
+| `S3:LocalPath` | Local directory to compare against S3 |
+| `S3:S3Uri` | S3 URI to compare against (e.g. `s3://bucket/prefix/`) |
+| `S3:Region` | AWS region. Defaults to `us-east-1` |
+
+---
+
 ## AWS Secrets Manager Setup
 
 If `UseAwsSecretsManager` is `true`, the secret must contain a JSON object with these keys:
