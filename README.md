@@ -42,6 +42,12 @@ Airtable Base
 | `readawsbucket` | Lists S3 bucket contents with file sizes and metadata |
 | `fixcsv` | One-off CSV normalizer: fixes headers and strips `.tif` extensions from filename fields |
 
+### Pipeline Scripts
+
+| Script | Purpose |
+|---|---|
+| `build-and-deploy.ps1` | Runs all 6 pipeline steps in sequence; prompts before deploying to AWS; supports `-StartStep`/`-StopStep` to run a subset |
+
 ---
 
 ## Three Ways to Use This System
