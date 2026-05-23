@@ -16,8 +16,9 @@ cd AirtableToPostgres && dotnet run -- full  # full sync all tables
 
 cd AirtableImageDownloader && dotnet run
 
-cd checks3vslocal && dotnet run              # compare local vs S3
-cd checks3vslocal && dotnet run -- --upload  # upload missing files to S3
+cd checks3vslocal && dotnet run                 # compare local vs S3
+cd checks3vslocal && dotnet run -- --upload     # upload missing files to S3
+cd checks3vslocal && dotnet run -- --hidelocal  # suppress "in S3 but not local" listing
 
 cd ArtWorkHTML && dotnet run               # default: generate all HTML pages
 cd ArtWorkHTML && dotnet run -- gen-static # generate static pages only (no DB required)
@@ -35,6 +36,23 @@ cd AirtableToPostgres && dotnet run -- diagnostic <ARTWORK_IMAGE>
 cd ArtWorkHTML && dotnet run -- test-db           # test PostgreSQL connection
 cd ArtWorkHTML && dotnet run -- test-airtable     # test Airtable connection
 ```
+
+### Help / discoverability
+
+Every console tool in the workspace accepts a help flag and prints the full list
+of commands and options for that tool. Any of `-h`, `--help`, `-?`, `/?`, or `?`
+will print usage and exit 0:
+
+```bash
+cd <ProjectDir> && dotnet run -- --help
+cd <ProjectDir> && dotnet run -- /?
+```
+
+An unrecognized flag (any unknown token starting with `-` or `/`) prints
+`Unknown option: <flag>` followed by the same usage block and exits with code 1.
+Positional arguments (paths, table names, S3 URIs, etc.) are passed through to
+each tool's existing argument-handling logic unchanged.
+
 ## Architecture
 
 ### Data Flow
@@ -76,7 +94,7 @@ Files from AirtableImageDownloader
 |---|---|
 | `Program.cs` | Entry point, command dispatch |
 | `SchemaGenerator.cs` / `SchemaParser.cs` | Reads `airtable_schema.txt`, creates typed PostgreSQL columns |
-| `RecordMapper.cs` / `TypeMapper.cs` | Maps Airtable field values to typed PostgreSQL values |
+| `RecordMapper.cs` / `TypeMapper.cs` | Maps Airtable field values to typed PostgreSQL values. Known Airtable types: `autoNumber`, `singleLineText`, `multilineText`, `number`, `currency`, `date`, `dateTime`, `createdTime`, `singleSelect`, `url`, `formula`, `count`, `multipleRecordLinks`, `multipleAttachments`, `multipleLookupValues`, `checkbox`. Unknown types log a warning and fall back to `TEXT` — add the mapping in `TypeMapper.cs` to fix |
 | `ChangeDetector.cs` | Classifies records as NEW / UPDATED / UNCHANGED for incremental sync |
 | `SyncHistoryLogger.cs` | Writes every sync operation to the `sync_history` table |
 
@@ -102,12 +120,13 @@ Uses C# partial classes, one file per page type:
 
 | File | Role |
 |---|---|
-| `ArtworkHTML.cs` | Main orchestrator — calls all page generators |
-| `ArtList.cs` | Data model for artwork records |
-| `GenerateArtworkPages.cs` | Main gallery (`artworksplus.html`) |
-| `GenerateStatisticsPage.cs` | Stats page |
+| `ArtworkHTML.cs` | Main orchestrator — calls all page generators; also defines `ArtworkTypePages` (the per-type-page config list — drives the gallery generator, the index split button, and the statistics By-Type chart) |
+| `ArtList.cs` | Data model for artwork records. `TryAttachBucketFile(name, ext, dbPrefix)` matches a bucket file to a DB artwork whose `FileName` is `<dbPrefix><name>` (e.g. `scans/<name>`) without creating a noDB entry on miss. The main `Artwork` constructor detects `FileName` starting with `scans/` and points its JPG URL at `scans/jpg/<basename>.jpg` instead of the default `jpg/<filename>.jpg` |
+| `GenerateArtworkPages.cs` | Main gallery (`artwork.html`) plus per-type filtered pages (`artwork-canvas.html`, `artwork-drawing.html`, `artwork-jewelry.html`, `artwork-painting-noncanvas.html`, `artwork-sculpture-nonwall.html`, `artwork-wall-sculpture.html`) — add a new entry to `ArtworkTypePages` to generate another type page. The S3 bucket walk tries `TryAttachBucketFile(..., "scans/")` first for files under `scans/` and `scans/jpg/`; only files with no matching DB artwork fall through to sketchbook/polaroid/scans-page categorisation |
+| `GenerateScansPage.cs` | Lists S3 scan files not in the database (`scans.html`) — populated only by bucket files that didn't match a DB artwork via the `scans/` prefix check |
+| `GenerateStatisticsPage.cs` | Stats page; the By-Type chart links each row to its per-type page (single-code pages) and adds a rowspan "browse all" cell for multi-code pages (e.g. jewelry). Total Artworks counts every row (no date filter); Date Range uses a `FILTER (WHERE year > 1900)` so 1899/1900 placeholders don't poison the displayed range. By Year buckets year 1899 as "Not yet entered" and 1900 as "Unknown", both sorted after real years |
 | `GenerateStylesheet.cs` | All CSS |
-| `GenerateIndexPage.cs` | Home page |
+| `GenerateIndexPage.cs` | Home page; the "browse" nav button is a stateful split button — main click goes to the configured default (`DefaultBrowsePageFileName` constant), triangle opens a menu listing every `ArtworkTypePages` entry plus "Browse All Artworks", and the user's last selection persists in `localStorage` (`kla_browse_default`) |
 | `GenerateHowIsMadePage.cs` | "How it's made" page |
 | `GenerateCreditsPage.cs` | Credits page |
 | `GenerateFeedbackPage.cs` | Feedback page |
@@ -134,19 +153,38 @@ Queries PostgreSQL for artwork records that have no front-view image in `artwork
 
 ## checks3vslocal
 
-Compares a local directory against an S3 bucket prefix. Reports files present locally but missing from S3. With `--upload`, uploads the missing files.
+Compares a local directory against an S3 bucket prefix. Reports files present locally but missing from S3, and (informationally) files in S3 that are not local. With `--upload`, uploads the missing-from-S3 files.
 
 ```bash
-dotnet run -- <localPath> <s3Uri> --upload
+dotnet run -- <localPath> <s3Uri> [--upload] [--hidelocal]
 ```
 
-Paths can also be set via `appsettings.json` (`S3:LocalPath`, `S3:S3Uri`, `S3:Region`).
+Flags:
+- `--upload` — upload files that exist locally but are missing from S3
+- `--hidelocal` — suppress the "files in S3 but not local" informational section (useful when the S3 prefix has many files you don't have locally and only the upload direction matters)
+
+Flags can be combined and given in any order. Positional `<localPath>` and `<s3Uri>` override the `appsettings.json` defaults (`S3:LocalPath`, `S3:S3Uri`, `S3:Region`).
 
 ---
 
 ## readawsbucket
 
-Lists all objects in an S3 bucket with their sizes and last-modified dates. Useful for auditing bucket contents.
+Lists objects in the configured S3 bucket and writes them to a text file. Parameter-driven:
+
+```bash
+dotnet run -- <prefix> <outputFile> [format] [--unique] [--no-recurse]
+```
+
+- `prefix` — S3 prefix to filter (e.g. `scans/`; `""` for whole bucket)
+- `outputFile` — text file to write the list to (one entry per line)
+- `format` — line template, default `<prefix><filename><ext>`; tokens `<prefix>` (dir with trailing `/`), `<filename>` (base, no extension), `<ext>` (with leading dot)
+- `--unique` — drop duplicate lines (preserves first-seen order)
+- `--no-recurse` — list only files directly under the prefix; uses S3 `Delimiter="/"` so subdirectory keys aren't fetched
+
+Example — produce a deduped list of base filenames directly under `scans/`:
+```bash
+dotnet run -- scans/ scanlist.txt "<filename>" --unique --no-recurse
+```
 
 ---
 
