@@ -12,6 +12,7 @@ A separate .NET project to query the PostgreSQL database for data problems and r
 - **HumanId sequence check** — for each year and type code in the artwork table, verify that the numbers start at 1 and increment without gaps (e.g. no skipping from 0042 to 0044)
 - **Records deleted in Airtable but still in DB** — the sync never deletes; add a check that compares DB records against Airtable and reports any that exist in the DB but not in Airtable (per table). Optionally extend to support actual deletion.
 - **Location "sold" but sold field is NULL** — detect artworks where `LOWER(TRIM(location)) = 'sold'` but the `sold` field is NULL; these are marked sold by location but have no sale record.
+- **Broken/missing image references** — detect image references that don't resolve to an existing S3 object (an HTTP 403/404, vs 200 for a real file); these silently render as broken thumbnails on the site. Sources to check: `artwork_image.url`, `photo.file_location` (and the synthesized `sscan/KL_<code>_<image_number>` form), `artwork.filename`, `artlist_item.url`, `sketch.filename`. Could also be surfaced directly in the ArtWorkHTML end-of-run error summary. Example found 2026-06-19: a bogus `make error` value in `artwork_image.url` for KL_1976_W_0016 (fix at the Airtable source, then re-sync).
 
 ## Notes
 
