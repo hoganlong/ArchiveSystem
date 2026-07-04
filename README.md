@@ -42,11 +42,22 @@ Airtable Base
 | `readawsbucket` | Lists S3 bucket contents with file sizes and metadata |
 | `fixcsv` | One-off CSV normalizer: fixes headers and strips `.tif` extensions from filename fields |
 
+### Image Tools
+
+| Project | Purpose |
+|---|---|
+| `rotate180` | Rotates a JPG/TIF on S3 losslessly by 90/180/270° clockwise (repo: `hoganlong/rotate`) |
+| `tif2jpg` | Generates derived JPG(s) from S3 TIFs (flat or sized layout) |
+
+See [docs/image-rotation-and-orientation.md](docs/image-rotation-and-orientation.md) for the rotate + JPG-refresh workflow and the orientation-tag gotcha.
+
 ### Pipeline Scripts
 
 | Script | Purpose |
 |---|---|
 | `build-and-deploy.ps1` | Runs all 6 pipeline steps in sequence; prompts before deploying to AWS; supports `-StartStep`/`-StopStep` to run a subset |
+| `check-tif-orientation.ps1` | Scans TIFs under an S3 prefix for a non-normal EXIF/TIFF orientation tag |
+| `rotate-tif-and-jpg.ps1` | Rotates TIF(s) on S3 and refreshes their derived JPG(s), with a preview-to-verify step |
 
 ---
 
