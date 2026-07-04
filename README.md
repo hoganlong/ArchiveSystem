@@ -55,9 +55,12 @@ See [docs/image-rotation-and-orientation.md](docs/image-rotation-and-orientation
 
 | Script | Purpose |
 |---|---|
-| `build-and-deploy.ps1` | Runs all 6 pipeline steps in sequence; prompts before deploying to AWS; supports `-StartStep`/`-StopStep` to run a subset |
+| `build-and-deploy.ps1` | Runs all 7 pipeline steps in sequence; prompts before deploying to AWS; supports `-StartStep`/`-StopStep` to run a subset |
 | `check-tif-orientation.ps1` | Scans TIFs under an S3 prefix for a non-normal EXIF/TIFF orientation tag |
 | `rotate-tif-and-jpg.ps1` | Rotates TIF(s) on S3 and refreshes their derived JPG(s), with a preview-to-verify step |
+| `deleteemptyfolders.ps1` | Recursively removes empty sub-folders under a target path |
+
+All scripts live in `scripts/`; see [docs/pipeline-scripts.md](docs/pipeline-scripts.md).
 
 ---
 
@@ -92,3 +95,9 @@ You want the complete system: database sync, image downloads, and a generated HT
 ## Technical Reference (build commands, architecture details)
 
 → [technical-reference.md](technical-reference.md)
+
+## Other Docs
+
+- [docs/image-rotation-and-orientation.md](docs/image-rotation-and-orientation.md) — rotating scans on S3 + the orientation-tag gotcha
+- [docs/how-to-migrate-schema-changes-from-airtable.md](docs/how-to-migrate-schema-changes-from-airtable.md) — propagating Airtable schema changes into the ETL
+- [docs/web-service-plan.md](docs/web-service-plan.md) — plan for adding dynamic features (API Gateway + Lambda + Postgres)

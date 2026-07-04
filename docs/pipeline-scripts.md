@@ -15,9 +15,10 @@ The main pipeline script. Runs all six steps in order and asks before deploying 
 | 1 | Airtable Image Downloader | `AirtableImageDownloader` | Exit code indicates whether new images were found |
 | 2 | Check S3 vs Local | `checks3vslocal` | Skipped automatically if step 1 found no new images |
 | 3 | Airtable to Postgres ETL | `AirtableToPostgres` | |
-| 4 | Generate HTML | `ArtWorkHTML` | |
-| 5 | Sync to S3 | AWS CLI | Prompts for confirmation before running |
-| 6 | CloudFront Invalidation | AWS CLI | Only runs if step 5 ran |
+| 4 | tif2jpg (sscan) | `tif2jpg` | Generates missing sized JPGs for `sscan/` TIFs |
+| 5 | Generate HTML | `ArtWorkHTML` | |
+| 6 | Sync to S3 | AWS CLI | Prompts for confirmation before running |
+| 7 | CloudFront Invalidation | AWS CLI | Only runs if step 6 ran |
 
 ### Usage
 
@@ -39,9 +40,9 @@ Run a subset of steps (e.g. ETL and HTML only):
 
 ### Adapting for a different artist
 
-Update the S3 bucket name and CloudFront distribution ID in the script:
-- Line 52: `s3://archive.keithlong.com/` → your bucket
-- Line 61: `--distribution-id E1WA80M7F42SVB` → your distribution ID
+- `-Root <path>` — the workspace folder holding the project subfolders. Defaults to `D:\Projects\claudetest`; override if yours lives elsewhere.
+- In the **Sync to S3** step, change `s3://archive.keithlong.com/` to your bucket.
+- In the **CloudFront Invalidation** step, change `--distribution-id E1WA80M7F42SVB` to your distribution ID.
 
 ---
 
@@ -69,6 +70,18 @@ optionally regenerate (via `tif2jpg`).
 
 Flags: `-DryRun`, `-NoPreview`, `-AssumeYes`, `-Bucket`/`-Region`. Full workflow
 and the orientation-tag caveat: [image-rotation-and-orientation.md](image-rotation-and-orientation.md).
+
+---
+
+## deleteemptyfolders.ps1
+
+Recursively removes empty sub-folders under a target path (deepest first). Handy
+for cleaning up leftover temp working dirs. Edit the `$TargetRoot` and `$WhatIf`
+variables at the top before running; set `$WhatIf = $true` to preview deletions.
+
+```powershell
+.\scripts\deleteemptyfolders.ps1
+```
 
 ---
 
