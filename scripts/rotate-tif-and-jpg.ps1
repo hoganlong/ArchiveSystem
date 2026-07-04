@@ -93,6 +93,19 @@ Write-Host ""
 Write-Host ("Bucket: {0}   Files: {1}   Mode: {2}" -f $Bucket, $parsed.Count, ($(if($DryRun){"DRY RUN (no changes)"}else{"live"})))
 $parsed | ForEach-Object { Write-Host ("  {0}  ->  rotate {1} CW" -f $_.Key, $_.Angle) }
 
+# ---------- Verify every TIF key exists on S3 (fail fast on typos) ----------
+$missing = @()
+foreach ($j in $parsed) {
+  aws s3api head-object --bucket $Bucket --key $j.Key 1>$null 2>$null
+  if ($LASTEXITCODE -ne 0) { $missing += $j.Key }
+}
+if ($missing.Count -gt 0) {
+  Write-Host ""
+  Write-Host "Not found on S3 — check the key/prefix. Nothing was changed:" -ForegroundColor Red
+  $missing | ForEach-Object { Write-Host ("  x s3://{0}/{1}" -f $Bucket, $_) -ForegroundColor Red }
+  exit 1
+}
+
 # ---------- Preview ----------
 if (-not $NoPreview) {
   $pdir = Join-Path $env:TEMP ("rotprev_" + [guid]::NewGuid().ToString("N"))

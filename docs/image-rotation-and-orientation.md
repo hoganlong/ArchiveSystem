@@ -65,7 +65,8 @@ End-to-end helper: rotate one or more TIFs **and** refresh their derived JPGs.
 ```powershell
 .\scripts\rotate-tif-and-jpg.ps1 -Jobs "scans/KLA_02_110.tif=90","sscan/KL_E_41.tif=270"
 ```
-Per run it: (1) opens a **preview** montage (current vs. proposed rotation, built
+It first verifies every TIF key exists on S3 — a mistyped key/prefix fails fast
+and changes nothing. Then per run it: (1) opens a **preview** montage (current vs. proposed rotation, built
 from the small JPG) for you to verify; (2) confirms, then rotates the TIF(s) via
 rotate180 `--upload`; (3) deletes the stale JPG(s), auto-detecting sized vs. flat;
 (4) asks **regenerate now? (y/n)** — one `tif2jpg` run covers all prefixes, and if
