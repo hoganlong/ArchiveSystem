@@ -1,7 +1,7 @@
 param(
     [int]$StartStep = 1,
     [int]$StopStep = 7,
-    [string]$Root = "D:\Projects\claudetest"
+    [string]$Root = "D:\Projects\KLA"
 )
 
 $ErrorActionPreference = "Stop"
