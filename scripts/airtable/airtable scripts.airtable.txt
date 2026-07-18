@@ -1,0 +1,147 @@
+
+
+
+  // === CONFIGURE THESE ===
+  const TABLE_NAME = 'ARTWORK';
+  const SOURCE_FIELD = 'PAPER_INVENTORY';
+  const TARGET_FIELD = 'Polaroid';
+  const PREFIX = 'Polaroid';
+  const SEPARATOR = ' - ';
+  const DRY_RUN = false;   // <-- set to false to actually write
+  // =======================
+
+  const table = base.getTable(TABLE_NAME);
+  const query = await table.selectRecordsAsync({ fields: [SOURCE_FIELD, TARGET_FIELD] });
+
+  const updates = [];
+  const preview = [];
+  for (const record of query.records) {
+      const fileName = record.getCellValueAsString(SOURCE_FIELD);
+      if (!fileName.startsWith(PREFIX)) continue;
+
+      const idx = fileName.indexOf(SEPARATOR);
+      if (idx === -1) continue;
+
+      const extracted = fileName.substring(idx + SEPARATOR.length);
+      const currentTarget = record.getCellValueAsString(TARGET_FIELD);
+
+      updates.push({ id: record.id, fields: { [TARGET_FIELD]: extracted } });
+      preview.push({
+          recordId: record.id,
+          source: fileName,
+          currentTarget: currentTarget,
+          newTarget: extracted,
+          changes: currentTarget !== extracted ? 'YES' : 'no',
+      });
+  }
+
+  output.text(`Found ${preview.length} matching record(s).`);
+  output.table(preview);
+
+  if (DRY_RUN) {
+      output.text('DRY RUN — no changes written. Set DRY_RUN = false to apply.');
+  } else {
+      while (updates.length > 0) {
+          await table.updateRecordsAsync(updates.slice(0, 50));
+          updates.splice(0, 50);
+      }
+      output.text('Done.');
+  }
+
+  /*
+  const table = base.getTable("SKETCH");
+  const records = await table.selectRecordsAsync({ fields: ["FILENAME"] });
+
+  const updates = [];
+
+  for (const record of records.records) {
+      const filename = record.getCellValueAsString("FILENAME");
+
+      // Match KLA_Sketchbooks_##_### with optional trailing letter
+      const match = filename.match(/^KLA_ _(\d{2})(\d+)([A-Za-z]?)$/i);
+      if (match) {
+        const newValue = `KLA_${match[1]}_${match[2]}${match[3]}`;
+        updates.push({ id: record.id, fields: { FILENAME: newValue } });
+      }
+
+  }
+
+  if (updates.length === 0) {
+      console.log("No records needed updating.");
+  } else {
+      for (let i = 0; i < updates.length; i += 50) {
+          await table.updateRecordsAsync(updates.slice(i, i + 50));
+      }
+      console.log(`Updated ${updates.length} record(s).`);
+  }
+
+
+*/
+
+
+/*
+  const table = base.getTable("SKETCH");
+  const records = await table.selectRecordsAsync({ fields: ["FILENAME"] });
+
+  const updates = [];
+
+  for (const record of records.records) {
+      const filename = record.getCellValueAsString("FILENAME");
+
+      // Match KLA_Sketchbooks_##_### with optional trailing letter
+      const match = filename.match(/^( ?)KLA_Sketchbooks_(\d+)_(\d+)([A-Za-z]?)$/i);
+      if (match) {
+          const newValue = `KLA_${match[2]}_${match[3]}${match[4]}`;
+          updates.push({ id: record.id, fields: { FILENAME: newValue } });
+      }
+  }
+
+  if (updates.length === 0) {
+      console.log("No records needed updating.");
+  } else {
+      for (let i = 0; i < updates.length; i += 50) {
+          await table.updateRecordsAsync(updates.slice(i, i + 50));
+      }
+      console.log(`Updated ${updates.length} record(s).`);
+  }
+*/
+
+
+/*
+ const table = base.getTable('SKETCH');
+  const records = await table.selectRecordsAsync({ fields: ['FILENAME', 'SKETCHBOOK_NUMBER'] });
+
+  const updates = records.records
+      .filter(r => {
+          const filename = r.getCellValueAsString('FILENAME');
+          const sketchbook = r.getCellValue('SKETCHBOOK_NUMBER');
+          return filename.endsWith('.tif') // && sketchbook = 3;
+      })
+      .map(r => ({
+          id: r.id,
+          fields: { FILENAME: r.getCellValueAsString('FILENAME').replace(/\.tif$/i, '') }
+      }));
+
+  for (let i = 0; i < updates.length; i += 50) {
+      await table.updateRecordsAsync(updates.slice(i, i + 50));
+  }
+  output.text(`Updated ${updates.length} records`);
+*/
+/*
+  const table = base.getTable('ARTWORK');
+  const query = await table.selectRecordsAsync({ fields: ['FILENAME'] });
+
+  let fixed = 0;
+
+  for (const record of query.records) {
+      const raw = record.getCellValueAsString('FILENAME');
+      const trimmed = raw.trim();
+
+      if (raw !== trimmed) {
+          console.log(`Fixing: "${raw}" → "${trimmed}" (record ${record.id})`);
+          await table.updateRecordAsync(record, { FILENAME: trimmed });
+          fixed++;
+      }
+  }
+ console.log(`Done. ${fixed} record(s) updated.`);
+*/
