@@ -22,7 +22,7 @@ param(
   [int]   $Throttle = 16
 )
 
-$binDir = "D:\Projects\claudetest\tif2jpg\bin\Debug\net10.0"
+$binDir = Join-Path $PSScriptRoot '..\..\tif2jpg\bin\Debug\net10.0'
 Add-Type -Path "$binDir\AWSSDK.Core.dll"
 Add-Type -Path "$binDir\AWSSDK.S3.dll"
 

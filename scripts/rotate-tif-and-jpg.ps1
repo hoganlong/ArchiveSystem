@@ -32,8 +32,8 @@ param(
   [Parameter(Mandatory=$true)][string[]]$Jobs,
   [string]$Bucket        = "keithlong-art-photos",
   [string]$Region        = "us-east-1",
-  [string]$Rotate180Proj = "D:\Projects\claudetest\rotate180\rotate180.csproj",
-  [string]$Tif2JpgProj   = "D:\Projects\claudetest\tif2jpg\tif2jpg.csproj",
+  [string]$Rotate180Proj = (Join-Path $PSScriptRoot '..\..\rotate\rotate180.csproj'),
+  [string]$Tif2JpgProj   = (Join-Path $PSScriptRoot '..\..\tif2jpg\tif2jpg.csproj'),
   [switch]$NoPreview,
   [switch]$DryRun,
   [switch]$AssumeYes
