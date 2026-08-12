@@ -40,7 +40,7 @@ Run a subset of steps (e.g. ETL and HTML only):
 
 ### Adapting for a different artist
 
-- `-Root <path>` — the workspace folder holding the project subfolders. Defaults to `D:\Projects\claudetest`; override if yours lives elsewhere.
+- `-Root <path>` — the workspace folder holding the project subfolders. Defaults to `D:\Projects\KLA`; override if yours lives elsewhere.
 - In the **Sync to S3** step, change `s3://archive.keithlong.com/` to your bucket.
 - In the **CloudFront Invalidation** step, change `--distribution-id E1WA80M7F42SVB` to your distribution ID.
 
@@ -94,8 +94,8 @@ Mode or an elevated shell is required to create the symlink):
 
 ```powershell
 # from an elevated PowerShell, per script:
-New-Item -ItemType SymbolicLink -Path "D:\Projects\claudetest\rotate-tif-and-jpg.ps1" `
-  -Target "D:\Projects\claudetest\archivesystem\scripts\rotate-tif-and-jpg.ps1"
+New-Item -ItemType SymbolicLink -Path "D:\Projects\KLA\rotate-tif-and-jpg.ps1" `
+  -Target "D:\Projects\KLA\archivesystem\scripts\rotate-tif-and-jpg.ps1"
 ```
 
 Edit the tracked copy in `scripts/`, not the root symlink.

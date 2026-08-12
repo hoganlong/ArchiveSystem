@@ -9,7 +9,7 @@ When you add, rename, or change fields in Airtable, follow these steps to propag
 This tool reads the live Airtable metadata API and generates an updated `airtable_schema.txt`.
 
 ```bash
-cd D:\Projects\claudetest\AirtableSchemaReader
+cd D:\Projects\KLA\AirtableSchemaReader
 dotnet run
 ```
 
@@ -46,7 +46,7 @@ Or check `AirtableToPostgres\appsettings.json` for `Schema:SchemaFilePath` — i
 The ETL system is **schema-driven**: it automatically generates `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` for every field in the schema file, so no code changes are needed for new fields.
 
 ```bash
-cd D:\Projects\claudetest\AirtableToPostgres
+cd D:\Projects\KLA\AirtableToPostgres
 
 dotnet run -- sync ARTWORK full
 dotnet run -- sync SKETCH full
@@ -78,7 +78,7 @@ If the fields are for internal/backend use only, skip this step.
 ## Step 6 — Run the Full Pipeline (if site needs updating)
 
 ```powershell
-cd D:\Projects\claudetest
+cd D:\Projects\KLA
 .\build-and-deploy.ps1
 ```
 

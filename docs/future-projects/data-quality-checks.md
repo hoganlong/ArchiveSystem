@@ -16,6 +16,6 @@ A separate .NET project to query the PostgreSQL database for data problems and r
 
 ## Notes
 
-- Will be a new project directory under `D:\Projects\claudetest\`
+- Will be a new project directory under `D:\Projects\KLA\`
 - Should output a report to console (and optionally a file)
 - Uses the same PostgreSQL connection as `AirtableToPostgres` and `ArtWorkHTML`
