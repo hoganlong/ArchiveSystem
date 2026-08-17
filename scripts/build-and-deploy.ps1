@@ -48,21 +48,22 @@ if ($newImages -eq 0) {
     Run-Step 2 "2/7 Check S3 vs Local" "checks3vslocal" "dotnet run --upload"
 }
 
-Run-Step 3 "3/7 Airtable to Postgres ETL"   "AirtableToPostgres"      "dotnet run"
-
-Run-Step 4 "4/7 tif2jpg (sscan)"            "tif2jpg"                 "dotnet run -- s3://keithlong-art-photos/sscan/ --create --upload"
-
-# Wake the auto-pausing Aurora DB before the DB-heavy HTML generation (step 5) so it
+# Wake the auto-pausing Aurora DB before the ETL (step 3) so it
 # doesn't hit the cold-start connection timeout. Non-fatal: if it can't confirm the
 # DB is up, continue anyway and let the generator's own retry/timeout handle it.
-if (5 -ge $StartStep -and 5 -le $StopStep) {
-    Write-Host "`n=== Waking database (before HTML generation) ===" -ForegroundColor Cyan
+if (3 -ge $StartStep -and 3 -le $StopStep) {
+    Write-Host "`n=== Waking database (before Airtable ETL) ===" -ForegroundColor Cyan
     & (Join-Path $root "ArchiveSystem\scripts\wake-db.ps1")
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  (couldn't confirm DB is up; continuing anyway)" -ForegroundColor Yellow
     }
     Set-Location $root
 }
+
+Run-Step 3 "3/7 Airtable to Postgres ETL"   "AirtableToPostgres"      "dotnet run"
+
+Run-Step 4 "4/7 tif2jpg (sscan)"            "tif2jpg"                 "dotnet run -- s3://keithlong-art-photos/sscan/ --create --upload"
+
 
 # Run-Step 5 "5/7 Generate HTML"              "ArtWorkHTML"              "dotnet run -- --dbsketchonly"
 
