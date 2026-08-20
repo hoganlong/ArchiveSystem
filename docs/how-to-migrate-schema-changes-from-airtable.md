@@ -25,6 +25,8 @@ Compare the new and old schema files to find:
 - New fields added to existing tables
 - Fields renamed or removed
 - New tables added
+- **Existing fields whose `Type:` line changed** — these are the only ones that need manual work
+  before the sync will run. See [Changing an existing field's type](#changing-an-existing-fields-type-manual-step-required) below.
 
 The key tables used by the pipeline are: `ARTWORK`, `ARTWORK_IMAGE`, `ARTWORK_TYPE`, `SKETCH`, `PHOTO`, `PHOTO_CATAGORY`, `ARCHIVE`, `ARCHIVE_IMAGE`, `SOLD`.
 
@@ -60,6 +62,89 @@ Only run sync for tables that actually changed. Use `full` to ensure all records
 The sync will:
 1. Run `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` to add new columns to PostgreSQL
 2. Fetch all records from Airtable and populate the new columns
+
+---
+
+## Changing an Existing Field's Type (manual step required)
+
+Everything above covers **adding** fields and tables, which is fully automatic. **Changing the type
+of a field that already exists is not.** The schema-driven DDL only ever emits
+`CREATE TABLE IF NOT EXISTS` and `ADD COLUMN IF NOT EXISTS` — it never emits `ALTER COLUMN ... TYPE`.
+So the PostgreSQL column keeps whatever type it was first created with, while the schema file now
+says something else.
+
+**How it fails.** If the new mapping is `JSONB` and the existing column is `TEXT`, the sync does not
+silently mismatch — it errors out. `AddParameters` in `Program.cs` binds JSONB columns with an
+explicit `NpgsqlDbType.Jsonb` parameter, and PostgreSQL rejects that against a text column:
+
+```
+42804: column "type" is of type text but expression is of type jsonb
+```
+
+Every row of that table fails. Other tables in the same run are unaffected.
+
+**Before you change anything, verify the column has no dependants** (this is also a good read-only
+sanity check that you are touching the right column):
+
+```sql
+SELECT column_name, data_type FROM information_schema.columns
+  WHERE table_schema='public' AND table_name='<table>' AND column_name='<column>';
+SELECT indexname, indexdef FROM pg_indexes WHERE schemaname='public' AND tablename='<table>';
+SELECT conname, contype FROM pg_constraint WHERE conrelid='public.<table>'::regclass;
+SELECT viewname FROM pg_views WHERE schemaname='public';
+```
+
+Run these with **RunSql** (`dotnet run -- "SELECT ..."`, read-only) or in DBeaver.
+
+**Then pick one of two fixes:**
+
+### Option A — let the column take the new type (preferred)
+
+Airtable is the source of truth, so the data is re-populated by the next full sync. Drop the old
+column and let the ETL recreate it:
+
+```sql
+ALTER TABLE <table> DROP COLUMN IF EXISTS <column>;
+```
+
+If you want the old values kept for comparison, rename instead of dropping
+(`ALTER TABLE <table> RENAME COLUMN <column> TO <column>_old;`) and drop the copy once you are happy.
+Writes need RunSql's admin gate (`dotnet run -- --admin "..."`) or DBeaver.
+
+Then run `dotnet run -- sync <TABLE> full` and confirm the new type:
+
+```sql
+SELECT column_name, data_type FROM information_schema.columns
+  WHERE table_schema='public' AND table_name='<table>';
+```
+
+### Option B — pin the old PostgreSQL type
+
+Override the mapping in `AirtableToPostgres\appsettings.json` under `Schema:FieldMappings`, which
+wins over the schema file:
+
+```json
+"FieldMappings": {
+  "ARCHIVE": { "TYPE": "VARCHAR(255)" }
+}
+```
+
+No DDL needed. For a `multipleRecordLinks` field pinned to `TEXT`/`VARCHAR`, `RecordMapper` stores
+the first linked record ID as a plain string — the same approach already used for
+`ARTWORK_IMAGE.ARTWORK_ID` and `SKETCH.ARTWORK_ID`.
+
+### Worked example — `ARCHIVE.TYPE`, 2026-08-19
+
+`ARCHIVE.TYPE` was changed in Airtable from `multilineText` to `multipleRecordLinks` (part of adding
+the `ARCHIVE_TYPE` and `ARCHIVE_SUBTYPE` lookup tables), so its mapping moved from `TEXT` to `JSONB`
+while `archive.type` in PostgreSQL was still `text`. The table held only test rows, so Option A was
+used: `ALTER TABLE archive DROP COLUMN IF EXISTS type;` in DBeaver, then
+`dotnet run -- sync ARCHIVE full`, after which `archive.type` came back as `jsonb` and all rows
+loaded cleanly.
+
+Related: `ARCHIVE.HUMAN_READABLE_ID` is an Airtable formula built from the `ARCHIVE_TYPE` code, the
+`SUBTYPE` code and `TYPE_NUMBER` zero-padded to 4 (`<type>_<subtype>_<nnnn>`) — which is why `TYPE`
+had to become a real record link rather than free text.
 
 ---
 
