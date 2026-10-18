@@ -41,6 +41,11 @@ Airtable Base
 | `CheckPhotoList` | Verifies Airtable PHOTO table records against local manifests and S3 bucket |
 | `readawsbucket` | Lists S3 bucket contents with file sizes and metadata |
 | `fixcsv` | One-off CSV normalizer: fixes headers and strips `.tif` extensions from filename fields |
+| `CheckPhotoTifs` | Verifies that every photo-table TIF exists in S3 |
+| `CsvToAirtable` | Imports a CSV into an Airtable table, including linked-record fields matched by any column |
+| `RunSql` | Ad-hoc Postgres query console — read-only by default; `--admin` for writes (repo: `hoganlong/RunSQL`) |
+| `GenPageTool` | Builds one standalone HTML page from a text template of artwork ids; not part of the site build |
+| `website-stats-lambda` | Daily website-traffic email (Python AWS Lambda + EventBridge Scheduler) |
 
 ### Image Tools
 
@@ -59,6 +64,9 @@ See [docs/image-rotation-and-orientation.md](docs/image-rotation-and-orientation
 | `check-tif-orientation.ps1` | Scans TIFs under an S3 prefix for a non-normal EXIF/TIFF orientation tag |
 | `rotate-tif-and-jpg.ps1` | Rotates TIF(s) on S3 and refreshes their derived JPG(s), with a preview-to-verify step |
 | `deleteemptyfolders.ps1` | Recursively removes empty sub-folders under a target path |
+| `wake-db.ps1` | Wakes the auto-pausing Aurora database (real `SELECT 1` via RunSql); run by `build-and-deploy.ps1` before the ETL |
+| `fix-my-ip.ps1` / `authorize-my-ip.ps1` | "Why won't the DB connect?" check, and the fix that adds this machine's IP to the DB security group |
+| `cloudfront-usage.ps1` | Website / photos traffic and CloudFront plan-usage report |
 
 All scripts live in `scripts/`; see [docs/pipeline-scripts.md](docs/pipeline-scripts.md).
 

@@ -83,6 +83,10 @@ dotnet run -- showall    # print all records to console
 dotnet run -- diagnostic # print connection and config info
 ```
 
+Add `-v` / `--verbose` to any command to also print informational messages, such as
+`Info: Lookup field 'X' has result type 'Y', using JSONB` — a log of the default lookup → `JSONB`
+mapping, not an error. These are hidden by default.
+
 ---
 
 ## How Tables Are Created

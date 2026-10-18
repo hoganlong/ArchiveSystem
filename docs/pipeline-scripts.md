@@ -6,7 +6,7 @@ Convenience PowerShell scripts live in the `scripts/` folder — their tracked h
 
 ## build-and-deploy.ps1
 
-The main pipeline script. Runs all six steps in order and asks before deploying to AWS.
+The main pipeline script. Runs all seven steps in order and asks before deploying to AWS. Before step 3 it runs `wake-db.ps1` so the auto-pausing Aurora database is awake for the ETL (non-fatal if it can't confirm).
 
 ### Steps
 
@@ -82,6 +82,29 @@ variables at the top before running; set `$WhatIf = $true` to preview deletions.
 ```powershell
 .\scripts\deleteemptyfolders.ps1
 ```
+
+---
+
+## Database connection helpers
+
+The archive database is Aurora Serverless and pauses when idle, and its security group allows only specific IPs. A connection timeout can mean either case; these scripts tell them apart and fix them.
+
+| Script | Purpose |
+|---|---|
+| `wake-db.ps1` | Wakes the paused cluster with a real `SELECT 1` through RunSql (a bare port knock doesn't trigger resume). Read-only. Called by `build-and-deploy.ps1` |
+| `fix-my-ip.ps1` | First check when the DB won't connect: compares this machine's public IP to the DB security group's allowlist and says whether it's the IP or just a paused cluster. Changes nothing |
+| `authorize-my-ip.ps1` | Adds this machine's current public IP to the DB security group (port 5432); `-ReplaceOthers` also removes stale IPs |
+
+The security group is discovered from AWS, not hardcoded. `fix-my-ip.ps1` is also symlinked at the workspace root.
+
+---
+
+## Website statistics
+
+| Script | Purpose |
+|---|---|
+| `cloudfront-usage.ps1` (+ `cloudfront-usage.sh`) | Per-day website requests, distinct visitor IPs, photos requests/GB, and a CloudFront Pro-plan usage gauge. `-Days N`, `-SkipUsers` |
+| `send-website-stats.ps1` | Legacy: emailed the `cloudfront-usage.ps1` report via SES from a Windows scheduled task. Replaced by the `website-stats-lambda` repo (AWS Lambda + EventBridge Scheduler); the scheduled task has been deleted |
 
 ---
 

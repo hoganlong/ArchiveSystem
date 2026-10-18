@@ -13,6 +13,8 @@ cd AirtableSchemaReader && dotnet run
 
 cd AirtableToPostgres && dotnet run          # default: incremental sync
 cd AirtableToPostgres && dotnet run -- full  # full sync all tables
+cd AirtableToPostgres && dotnet run -- -v    # add -v / --verbose to any command for informational messages
+                                             # (e.g. lookup-field result types mapped to JSONB)
 
 cd AirtableImageDownloader && dotnet run
 
@@ -123,11 +125,13 @@ Uses C# partial classes, one file per page type:
 | `ArtworkHTML.cs` | Main orchestrator — calls all page generators; also defines `ArtworkTypePages` (the per-type-page config list — drives the gallery generator, the index split button, and the statistics By-Type chart) |
 | `ArtList.cs` | Data model for artwork records. `TryAttachBucketFile(name, ext, dbPrefix)` matches a bucket file to a DB artwork whose `FileName` is `<dbPrefix><name>` (e.g. `scans/<name>`) without creating a noDB entry on miss. The main `Artwork` constructor detects `FileName` starting with `scans/` and points its JPG URL at `scans/jpg/<basename>.jpg` instead of the default `jpg/<filename>.jpg` |
 | `GenerateArtworkPages.cs` | Main gallery (`artwork.html`) plus per-type filtered pages (`artwork-canvas.html`, `artwork-collage.html`, `artwork-drawing.html`, `artwork-jewelry.html`, `artwork-painting-noncanvas.html`, `artwork-sculpture-nonwall.html`, `artwork-study-sketch.html`, `artwork-wall-sculpture.html`) — add a new entry to `ArtworkTypePages` to generate another type page. Also emits `errors.html`, a gallery of just the artworks that have one or more errors. The S3 bucket walk tries `TryAttachBucketFile(..., "scans/")` first for files under `scans/` and `scans/jpg/`; only files with no matching DB artwork fall through to sketchbook/polaroid/scans-page categorisation |
-| `GenerateScansPage.cs` | Lists S3 scan files not in the database (`scans.html`) — populated only by bucket files that didn't match a DB artwork via the `scans/` prefix check |
+| `GenerateScansPage.cs` | S3 scan files not in the database, split by filename prefix: a `scanslist.html` hub (count per prefix) → one `scans-{prefix}.html` page per entry in `ScanPrefixes` (case-insensitive `StartsWith` on the bucket basename) → `scans.html` for the "Other" leftovers. Populated only by bucket files that didn't match a DB artwork via the `scans/` prefix check; photo, show and `archive_image` files are excluded. All `noindex` |
+| `GenerateArchivePages.cs` | `archive.html` — admin page listing each `archive` record with its `archive_image` views (bucket-relative URLs, `atch/archive_<id>_<size>.jpg` attachments, external links, or no image) |
+| `GenerateErrorsPage.cs` | `errors.html` + per-error-type detail pages, grouped by `ErrorBucketKey` |
 | `GenerateStatisticsPage.cs` | Stats page; the By-Type chart links each row to its per-type page (single-code pages) and adds a rowspan "browse all" cell for multi-code pages (e.g. jewelry). Total Artworks counts every row (no date filter); Date Range uses a `FILTER (WHERE year > 1900)` so 1899/1900 placeholders don't poison the displayed range. By Year buckets year 1899 as "Not yet entered" and 1900 as "Unknown", both sorted after real years |
 | `GenerateStylesheet.cs` | All CSS |
 | `GenerateIndexPage.cs` | Home page; the "browse" nav button is a stateful split button — main click goes to the configured default (`DefaultBrowsePageFileName` constant), triangle opens a menu listing every `ArtworkTypePages` entry plus "Browse All Artworks", and the user's last selection persists in `localStorage` (`kla_browse_default`). Carries an "Admin only" link to `admin.html`; the Polaroids and Scans buttons were relocated from the home page onto the admin page |
-| `GenerateAdminPage.cs` | `admin.html` — password-gated admin/development page. Client-side **soft** gate only (SHA-256 hash + validation JS visible in page source; not real security — real auth must be server-side). Consolidates the dev links (Errors, Polaroids, Scans) and shows the current run's error summary |
+| `GenerateAdminPage.cs` | `admin.html` — password-gated admin/development page. Client-side **soft** gate only (SHA-256 hash + validation JS visible in page source; not real security — real auth must be server-side). Consolidates the dev links (Errors, Polaroids, Scans → `scanslist.html`, Archive, Hidden Sketchbooks) and shows the current run's error summary |
 | `GenerateHowIsMadePage.cs` | "How it's made" page |
 | `GenerateCreditsPage.cs` | Credits page |
 | `GenerateFeedbackPage.cs` | Feedback page |
@@ -135,7 +139,7 @@ Uses C# partial classes, one file per page type:
 | `GenerateOpensourcePage.cs` | Open source page |
 | `GenerateCopyrightPage.cs` | Copyright page |
 
-- Reads from PostgreSQL tables: `artwork`, `artwork_image`, `artwork_type`, `sketch`
+- Reads from PostgreSQL tables: `artwork`, `artwork_image`, `artwork_type`, `sketch`, `photo`, `photo_catagory`, `show`, `artlist`, `artlist_item`, `archive`, `archive_image`
 - Images are served from S3 (URLs stored in PostgreSQL)
 - `gen-static` mode skips the database connection and generates only static/non-data pages
 
