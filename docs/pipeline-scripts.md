@@ -15,7 +15,7 @@ The main pipeline script. Runs all seven steps in order and asks before deployin
 | 1 | Airtable Image Downloader | `AirtableImageDownloader` | Exit code indicates whether new images were found |
 | 2 | Check S3 vs Local | `checks3vslocal` | Skipped automatically if step 1 found no new images |
 | 3 | Airtable to Postgres ETL | `AirtableToPostgres` | |
-| 4 | tif2jpg (sscan) | `tif2jpg` | Generates missing sized JPGs for `sscan/` TIFs |
+| 4 | tif2jpg (sscan + root) | `tif2jpg` | Generates missing sized JPGs for `sscan/` TIFs, then missing flat JPGs (`jpg/<name>.jpg`) for TIFs in the bucket root |
 | 5 | Generate HTML | `ArtWorkHTML` | |
 | 6 | Sync to S3 | AWS CLI | Prompts for confirmation before running |
 | 7 | CloudFront Invalidation | AWS CLI | Only runs if step 6 ran |

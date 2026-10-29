@@ -63,6 +63,8 @@ if (3 -ge $StartStep -and 3 -le $StopStep) {
 Run-Step 3 "3/7 Airtable to Postgres ETL"   "AirtableToPostgres"      "dotnet run"
 
 Run-Step 4 "4/7 tif2jpg (sscan)"            "tif2jpg"                 "dotnet run -- s3://keithlong-art-photos/sscan/ --create --upload"
+# Bucket root (photographer TIFs) uses the flat layout: one jpg/<name>.jpg per TIF.
+Run-Step 4 "4/7 tif2jpg (root)"             "tif2jpg"                 "dotnet run -- s3://keithlong-art-photos/ --flat --upload"
 
 
 # Run-Step 5 "5/7 Generate HTML"              "ArtWorkHTML"              "dotnet run -- --dbsketchonly"
